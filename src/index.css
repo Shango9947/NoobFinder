@@ -19,6 +19,12 @@
   margin-bottom: 10px;
 } */
 
+.table {
+  align-items: center;
+  text-align: center;
+  display: inline block;
+}
+
 .square {
   background: #fff;
   border: 1px solid #999;

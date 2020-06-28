@@ -22,7 +22,7 @@ class Game extends React.Component {
     }
   }
 
-  function() {
+  func1() {
     var temp = []; var typ = [];
     for(let i = 0; i < 6; i++) {
       var s = []; var s1 = [];
@@ -35,8 +35,8 @@ class Game extends React.Component {
   }
 
   state = {
-    color: this.function()[0],
-    type: this.function()[1],
+    color: this.func1()[0],
+    type: this.func1()[1],
     rows: 6,
     cols: 6,
     selected: 'Source',
@@ -45,47 +45,54 @@ class Game extends React.Component {
     convex: false,
   };
 
-  onClickBFS = () => {
+  onClickBFS = async() => {
     var vis = []; var dp = [];
     var r = this.state.rows, c = this.state.cols;
 
     for(var i=0;i<r;i++) {
-        vis[i] = new Array(c).fill(false);
-        dp[i] = new Array(c).fill(0);
+        vis.push(Array(c).fill(false));
+        dp.push(Array(c).fill(0));
     }
 
     var que = []; 
     var st = this.state.source; dp[st[0]][st[1]] = 0;
     var end = this.state.end; var last = 0;
 
-    que.push(st); var x1 = [1, -1, 0, 0]; var y1 = [0, 0, 1, -1]; var temp_color = this.state.color.slice();
-    while(que.length != 0) {
+    que.push(st); var x1 = [1, -1, 0, 0]; var y1 = [0, 0, 1, -1]; var tot = []; var colChng = [];
+    while(que.length !== 0) {
       var ans = false;
       var fro = que.shift(); vis[fro[0]][fro[1]] = true; 
       for(var i=0;i<4;i++) {
-          var x = fro[0] + x1[i]; var y = fro[1] + y1[i];
-          if(x >= 0 && x < r && y >= 0 && y < c && !vis[x][y] && this.state.color[x][y] !== 'gray') {
-              vis[x][y] = true; que.push([x, y]); dp[x][y] = dp[fro[0]][fro[1]] + 1; 
-              if(dp[x][y] - last === 2) {
-                last++; 
-                setTimeout(() => {this.setState({
-                  color: temp_color,
-                })}, 1000);
-              }
-              if(x == end[0] && y == end[1]) {
-                  ans = true; break;
-              } else {
-                temp_color[x][y] = 'yellow';
-              }
-          } 
+        var x = fro[0] + x1[i]; var y = fro[1] + y1[i];
+        if(x >= 0 && x < r && y >= 0 && y < c && !vis[x][y] && this.state.color[x][y] !== 'gray') {
+            vis[x][y] = true; dp[x][y] = dp[fro[0]][fro[1]] + 1; 
+            if(dp[x][y] - last === 2) {
+              last++;
+              tot.push(colChng); colChng = [];
+            }
+            if(x === end[0] && y === end[1]) {
+                ans = true; break;
+            } else {
+              que.push([x, y]); colChng.push([x, y]);
+            }
+        } 
       }
       if(ans) break;
     }
-    setTimeout(() => {
+    if(colChng.length !== 0) tot.push(colChng);
+    const sleep = (milliseconds) => {
+      return new Promise(resolve => setTimeout(resolve, milliseconds))
+    }
+    for(var i=0;i<tot.length;i++) {
+      await sleep(100);
+      var temp_color = this.state.color.slice();
+      for(var j=0; j<tot[i].length; j++) {
+        temp_color[tot[i][j][0]][tot[i][j][1]] = 'yellow';
+      }
       this.setState({
         color: temp_color,
       });
-    }, 1000);
+    }
   }
 
   onCellClick(i, j) {
@@ -212,7 +219,7 @@ class Game extends React.Component {
 
   render() {
     return (
-      <div>
+      <div className='pura'>
         <label htmlFor="vol">Rows (between 6 and 34):</label>
         <input type="range" id="rows" name="vol" min="6" max="34" defaultValue="6" onChange={(e) => {this.onRowRangeChange(e)}} />
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {this.state.rows}
@@ -221,14 +228,14 @@ class Game extends React.Component {
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
         <label htmlFor="vol">Columns (between 6 and 76):</label>
         <input type="range" id="cols" name="vol" min="6" max="76" defaultValue="6" onChange={(e) => {this.onColRangeChange(e)}} />
-        <br />
-        <br />
+        <br /><br/>
+        <div className='table'>
         {this.generateGrid()}
-        <br /> <br />
+        </div>
+        <br />
         <Button className="margin-around-5px" variant="contained" color="primary" onClick={this.onClickBFS}>
           Start BFS
         </Button>
-        <br />
         <Button className="margin-around-5px" variant="outlined" color="primary" onClick={this.reset}>
           Reset
         </Button>
