@@ -93,21 +93,36 @@ class Game extends React.Component {
         color: temp_color,
       });
     }
+    var fin = this.state.end; var temp_color = this.state.color;
+    while(true) {
+      for(var i=0;i<4;i++) {
+        var x = fin[0] - x1[i]; var y = fin[1] - y1[i];
+        if(x === this.state.source[0] && y === this.state.source[1]) return;
+        if(x >= 0 && x < r && y >= 0 && y < c && vis[x][y] && (dp[x][y] === dp[fin[0]][fin[1]] - 1)) {
+            fin = [x, y]; temp_color[x][y] = 'black'; break;
+        } 
+      }
+      if(fin[0] === this.state.source[0] && fin[1] === this.state.source[1]) break;
+      this.setState({
+        color: temp_color,
+      })
+      await sleep(30);
+    }
   }
 
   onCellClick(i, j) {
     var temp_color = this.state.color.slice();
     if(this.state.selected === 'Source') {
-      temp_color[i][j] = 'green';
       if(this.state.source[0] != -1 && this.state.convex === false) temp_color[this.state.source[0]][this.state.source[1]] = 'white';
+      temp_color[i][j] = 'green';
       this.setState({
         color: temp_color,
         source: [i, j],
       });
     }
     else if(this.state.selected === 'Exit') {
-      temp_color[i][j] = 'red';
       if(this.state.end[0] != -1 && this.state.convex === false) temp_color[this.state.end[0]][this.state.end[1]] = 'white';
+      temp_color[i][j] = 'red';
       this.setState({
         color: temp_color,
         end: [i, j],
