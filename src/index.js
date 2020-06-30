@@ -130,7 +130,6 @@ class Game extends React.Component {
 
     var que = []; 
     var st = this.state.source; dp[st[0]][st[1]] = 0;
-    // document.write(st[0] + " " + st[1] + " " + dp[st[0]][st[1]] + "<br/>");
     var end = this.state.end; 
     var que = new TinyQueue([], this.cmp); 
     que.push([0, st[0], st[1]]); var x1 = [1, -1, 0, 0]; var y1 = [0, 0, 1, -1];
@@ -155,12 +154,6 @@ class Game extends React.Component {
         } 
       }
     } 
-    // for(var i=0;i<this.state.rows;i++) {
-    //   for(var j=0;j<this.state.cols;j++) {
-    //     document.write("[" + dp[i][j] + " " + i + " " + j + " " + "] ");
-    //   }
-    //   document.write("<br/>");
-    // }
     var last = dp[end[0]][end[1]]; var fin = end;
     if(last === 1000000) {
       alert('No path exists!'); return; 
@@ -174,7 +167,6 @@ class Game extends React.Component {
             fin = [x, y]; temp_color[x][y] = 'DeepPink'; break;
         } 
       }
-      // document.write(fin[0] + " " + fin[1] + "<br/>");
       if(fin[0] === this.state.source[0] && fin[1] === this.state.source[1]) break;
       this.setState({
         color: temp_color,
