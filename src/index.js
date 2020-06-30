@@ -1,33 +1,29 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import TinyQueue from 'tinyqueue';
 import './index.css';
 
 import { Button } from 'react-bootstrap';
+import { Alert } from 'react-alert';
 
 function Square(props) {
+  var lala = props.type;
+  if(lala === 0 || lala == 0) lala = '';
   return (
     <button style = {{backgroundColor: props.color}} className="square" onClick = {props.onClick} >
-      {props.type}
+      {lala}
     </button>
   );
 }
 
 class Game extends React.Component {
 
-  func() { 
-    for(var i=0; i<this.state.rows; i++) {
-      for(var j=0; j<this.state.cols; j++) {
-        
-      }
-    }
-  }
-
   func1() {
     var temp = []; var typ = [];
     for(let i = 0; i < 6; i++) {
       var s = []; var s1 = [];
       for(let j = 0; j < 6; j++) {
-        s.push('white'); s1.push('');
+        s.push('white'); s1.push(0);
       }
       temp.push(s); typ.push(s1);
     }
@@ -36,13 +32,14 @@ class Game extends React.Component {
 
   state = {
     color: this.func1()[0],
-    type: this.func1()[1],
+    nodeWeight: this.func1()[1],
     rows: 6,
     cols: 6,
     selected: 'Source',
     source: [-1, -1],
     end: [-1, -1],
     convex: false,
+    weight: 0,
   };
 
   onClickBFS = async() => {
@@ -84,7 +81,6 @@ class Game extends React.Component {
       return new Promise(resolve => setTimeout(resolve, milliseconds))
     }
     for(var i=0;i<tot.length;i++) {
-      await sleep(100);
       var temp_color = this.state.color.slice();
       for(var j=0; j<tot[i].length; j++) {
         temp_color[tot[i][j][0]][tot[i][j][1]] = 'yellow';
@@ -92,6 +88,10 @@ class Game extends React.Component {
       this.setState({
         color: temp_color,
       });
+      await sleep(100);
+    }
+    if(!vis[this.state.end[0]][this.state.end[1]]) {
+      alert('No path exists!'); return;
     }
     var fin = this.state.end; var temp_color = this.state.color;
     while(true) {
@@ -108,6 +108,83 @@ class Game extends React.Component {
       })
       await sleep(30);
     }
+  }
+
+  cmp(a, b) {
+    if(a[0] > b[0]) return true;
+    return false;
+  }
+
+  onClickDjikstra = async() => {
+
+    const sleep = (milliseconds) => {
+      return new Promise(resolve => setTimeout(resolve, milliseconds))
+    }
+
+    var dp = [];
+    var r = this.state.rows, c = this.state.cols;
+
+    for(var i=0;i<r;i++) {
+        dp.push(Array(c).fill(1000000));
+    }
+
+    var que = []; 
+    var st = this.state.source; dp[st[0]][st[1]] = 0;
+    // document.write(st[0] + " " + st[1] + " " + dp[st[0]][st[1]] + "<br/>");
+    var end = this.state.end; 
+    var que = new TinyQueue([], this.cmp); 
+    que.push([0, st[0], st[1]]); var x1 = [1, -1, 0, 0]; var y1 = [0, 0, 1, -1];
+    while(que.length) {
+      var top = que.pop();
+      for(var i=0;i<4;i++) {
+        var x = top[1] + x1[i]; var y = top[2] + y1[i];
+        if(x >= 0 && x < r && y >= 0 && y < c && this.state.color[x][y] !== 'gray') {
+          if(dp[x][y] > dp[top[1]][top[2]] + parseInt(this.state.nodeWeight[x][y])) {
+            dp[x][y] = dp[top[1]][top[2]] + parseInt(this.state.nodeWeight[x][y]);
+            que.push([parseInt(this.state.nodeWeight[x][y]), x, y]);
+            var temp_color = this.state.color;
+            if(!(x === st[0] && y === st[1]) && !(x === end[0] && y === end[1])) {
+              if(temp_color[x][y] == 'Aqua') temp_color[x][y] = 'yellow';
+              else temp_color[x][y] = 'Aqua';
+            }
+            this.setState({
+              color: temp_color,
+            });
+            await sleep(50);
+          }
+        } 
+      }
+    } 
+    // for(var i=0;i<this.state.rows;i++) {
+    //   for(var j=0;j<this.state.cols;j++) {
+    //     document.write("[" + dp[i][j] + " " + i + " " + j + " " + "] ");
+    //   }
+    //   document.write("<br/>");
+    // }
+    var last = dp[end[0]][end[1]]; var fin = end;
+    if(last === 1000000) {
+      alert('No path exists!'); return; 
+    } 
+    var temp_color = this.state.color;
+    while(true) {
+      for(var i=0;i<4;i++) {
+        var x = fin[0] - x1[i]; var y = fin[1] - y1[i];
+        if(x === this.state.source[0] && y === this.state.source[1]) return;
+        if(x >= 0 && x < r && y >= 0 && y < c && (dp[x][y] === dp[fin[0]][fin[1]] - parseInt(this.state.nodeWeight[fin[0]][fin[1]])) && temp_color[x][y] !== 'DeepPink' && temp_color[x][y] !== 'green' && temp_color[x][y] !== 'red' && temp_color[x][y] !== 'gray') {
+            fin = [x, y]; temp_color[x][y] = 'DeepPink'; break;
+        } 
+      }
+      // document.write(fin[0] + " " + fin[1] + "<br/>");
+      if(fin[0] === this.state.source[0] && fin[1] === this.state.source[1]) break;
+      this.setState({
+        color: temp_color,
+      })
+      await sleep(30);
+    }
+    this.setState({
+      color: temp_color,
+    });
+    return;
   }
 
   onCellClick(i, j) {
@@ -134,6 +211,13 @@ class Game extends React.Component {
         color: temp_color,
       });
     }
+    else if(this.state.selected === 'Weight') {
+      var temp_weight = this.state.nodeWeight.slice();
+      temp_weight[i][j] = this.state.weight;
+      this.setState({
+        nodeWeight: temp_weight,
+      });
+    }
     else {
       temp_color[i][j] = 'gray';
       this.setState({
@@ -150,7 +234,7 @@ class Game extends React.Component {
         s.push(
           <Square 
             color = {this.state.color[i][j]}
-            type = {this.state.type[i][j]}
+            type = {this.state.nodeWeight[i][j]}
             onClick = {() => {
               this.onCellClick(i, j);
             }}
@@ -169,13 +253,13 @@ class Game extends React.Component {
     for(let i = 0; i < r; i++) {
       var s = []; var s1 = [];
       for(let j = 0; j < c; j++) {
-        s.push('white'); s1.push('');
+        s.push('white'); s1.push(0);
       }
       temp.push(s); typ.push(s1);
     }
     this.setState({
       color: temp, 
-      type: typ,
+      nodeWeight: typ,
     });
   }
 
@@ -192,6 +276,13 @@ class Game extends React.Component {
     });
     this.initialiseColorType(this.state.rows, event.target.value);
   };
+
+  onWeightChange = (event) => {
+    this.setState({
+      applyWeight: true,
+      weight: event.target.value,
+    });
+  }
 
   placeEntry = () => {
     this.setState({
@@ -211,6 +302,12 @@ class Game extends React.Component {
     });
   }
 
+  onWeight = () => {
+    this.setState({
+      selected: "Weight",
+    }); 
+  }
+
   reset = () => {
     var temp_color = this.state.color.slice();
     for(var i=0; i<this.state.rows; i++) {
@@ -225,6 +322,21 @@ class Game extends React.Component {
       convex: false,
     });
   }
+
+  resetPath = () => {
+    var temp_color = this.state.color.slice();
+    for(var i=0; i<this.state.rows; i++) {
+      for(var j=0; j<this.state.cols; j++) {
+        if(temp_color[i][j] !== 'red' && temp_color[i][j] !== 'green' && temp_color[i][j] != 'gray') {
+          temp_color[i][j] = 'white';
+        }
+      }
+    }
+    this.setState({
+      color: temp_color,
+      selected: 'Source',
+    });
+  } 
 
   clearCell = () => {
     this.setState ({
@@ -243,16 +355,23 @@ class Game extends React.Component {
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
         <label htmlFor="vol">Columns (between 6 and 76):</label>
         <input type="range" id="cols" name="vol" min="6" max="76" defaultValue="6" onChange={(e) => {this.onColRangeChange(e)}} />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {'||'}
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <label htmlFor="vol">Weight(1-9) : </label> 
+        <input type="number" id="num" name="weight" min="1" max="9" defaultValue='' onChange={(e) => {this.onWeightChange(e)}} />
+        &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; {'||'}
+        &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;
+        {'Weight = '} {this.state.weight}
         <br /><br/>
         <div className='table'>
         {this.generateGrid()}
         </div>
         <br />
-        <Button className="margin-around-5px" variant="contained" color="primary" onClick={this.onClickBFS}>
-          Start BFS
-        </Button>
         <Button className="margin-around-5px" variant="outlined" color="primary" onClick={this.reset}>
           Reset
+        </Button>
+        <Button className="margin-around-5px" variant="contained" color="primary" onClick={this.resetPath}>
+          Reset Path
         </Button>
         <br /> 
         <Button className="margin-around-5px" variant="outlined" color="primary" onClick={this.placeEntry}>
@@ -264,8 +383,18 @@ class Game extends React.Component {
         <Button className="margin-around-5px" variant="outlined" color="primary" onClick={this.placeWall}>
           Place Wall
         </Button>
+        <Button className="margin-around-5px" variant="contained" color="primary" onClick={this.onWeight}>
+          Place Weight
+        </Button>
         <Button className="margin-around-5px" variant="outlined" color="primary" onClick={this.clearCell}>
           Clear Cell
+        </Button>
+        <br/>
+        <Button className="margin-around-5px" variant="contained" color="primary" onClick={this.onClickBFS}>
+          Start BFS
+        </Button>
+        <Button className="margin-around-5px" variant="contained" color="primary" onClick={this.onClickDjikstra}>
+          Start Djikstra
         </Button>
       </div>
     );
