@@ -415,6 +415,18 @@ class Game extends React.Component {
     });
   }
 
+  resetAlien = () => {
+    var temp_weight = this.state.nodeWeight;
+    for(var i=0; i<this.state.rows; i++) {
+      for(var j=0; j<this.state.cols; j++) {
+        if(temp_weight[i][j] < 0) temp_weight[i][j] = 0;
+      }
+    }
+    this.setState({
+      nodeWeight: temp_weight,
+    });
+  }
+
   resetPath = () => {
     var temp_color = this.state.color.slice();
     for(var i=0; i<this.state.rows; i++) {
@@ -464,6 +476,9 @@ class Game extends React.Component {
         </Button>
         <Button className="margin-around-5px" variant="contained" color="primary" onClick={this.resetPath}>
           Reset Path
+        </Button>
+        <Button className="margin-around-5px" variant="contained" color="primary" onClick={this.resetAlien}>
+          Reset Aliens!
         </Button>
         <br /> 
         <Button className="margin-around-5px" variant="outlined" color="primary" onClick={this.placeEntry}>
