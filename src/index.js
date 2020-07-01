@@ -42,10 +42,14 @@ class Game extends React.Component {
     source: [-1, -1],
     end: [-1, -1],
     convex: false,
-    weight: 0,
+    weight: 1,
   };
 
   onClickBFS = async() => {
+    if(this.state.source[0] == -1 || this.state.end[0] == -1) {
+      alert('Source/End not defined!'); 
+      return;
+    }
     var vis = []; var dp = [];
     var r = this.state.rows, c = this.state.cols;
 
@@ -124,24 +128,33 @@ class Game extends React.Component {
       return new Promise(resolve => setTimeout(resolve, milliseconds))
     }
 
-    var dp = [];
-    var r = this.state.rows, c = this.state.cols;
-
-    for(var i=0;i<r;i++) {
-        dp.push(Array(c).fill(1000000));
+    if(this.state.source[0] == -1 || this.state.end[0] == -1) {
+      alert('Source/End not defined!'); 
+      return;
     }
 
+    var dp = [];
+    var r = this.state.rows, c = this.state.cols;
+    // document.write(r + " " + c);
+    var vis = [];
+    for(var i=0;i<r;i++) {
+        dp.push(Array(c).fill(1000000));
+        vis.push(Array(c).fill(false));
+    }
+    // document.write(r + " " + c);
     var que = []; 
     var st = this.state.source; dp[st[0]][st[1]] = 0;
     var end = this.state.end; 
     var que = new TinyQueue([], this.cmp); 
-    que.push([0, st[0], st[1]]); var x1 = [1, -1, 0, 0]; var y1 = [0, 0, 1, -1];
+    que.push([0, st[0], st[1]]); var x1 = [1, -1, 0, 0]; var y1 = [0, 0, 1, -1]; vis[st[0]][st[1]] = true;
     while(que.length) {
       var top = que.pop();
       for(var i=0;i<4;i++) {
         var x = top[1] + x1[i]; var y = top[2] + y1[i];
         if(x >= 0 && x < r && y >= 0 && y < c && this.state.color[x][y] !== 'gray') {
-          if(dp[x][y] > dp[top[1]][top[2]] + parseInt(this.state.nodeWeight[x][y])) {
+          if((dp[x][y] > dp[top[1]][top[2]] + parseInt(this.state.nodeWeight[x][y])) || (!vis[x][y])) {
+            // document.write("[" + x + " " + y + "]"); 
+            vis[x][y] = true;
             dp[x][y] = dp[top[1]][top[2]] + parseInt(this.state.nodeWeight[x][y]);
             que.push([parseInt(this.state.nodeWeight[x][y]), x, y]);
             var temp_color = this.state.color;
@@ -152,7 +165,7 @@ class Game extends React.Component {
             this.setState({
               color: temp_color,
             });
-            await sleep(50);
+            await sleep(1);
           }
         } 
       }
@@ -210,6 +223,12 @@ class Game extends React.Component {
         }
       }
     }
+
+    if(arr.length == 0) {
+      alert('Aliens not defined!'); 
+      return;
+    }
+
     this.setState({
       nodeWeight: temp_weight,
     });
@@ -334,7 +353,10 @@ class Game extends React.Component {
       for(let j = 0; j < c; j++) {
         var lulu = 'white'; var coco = 0;
         if(i < this.state.color.length && j < this.state.color[0].length) {
-          lulu = this.state.color[i][j]; coco = this.state.nodeWeight[i][j];
+          lulu = this.state.color[i][j]; 
+        }
+        if(i < this.state.nodeWeight.length && j < this.state.nodeWeight[0].length) {
+          coco = this.state.nodeWeight[i][j];
         }
         s.push(lulu); s1.push(coco);
       }
@@ -416,14 +438,17 @@ class Game extends React.Component {
   }
 
   resetAlien = () => {
-    var temp_weight = this.state.nodeWeight;
+    var temp_weight = this.state.nodeWeight; var temp_color = this.state.color;
     for(var i=0; i<this.state.rows; i++) {
       for(var j=0; j<this.state.cols; j++) {
-        if(temp_weight[i][j] < 0) temp_weight[i][j] = 0;
+        if(temp_weight[i][j] < 0) {
+          temp_weight[i][j] = 0; temp_color[i][j] = 'white';
+        }
       }
     }
     this.setState({
       nodeWeight: temp_weight,
+      color: temp_color,
     });
   }
 
@@ -441,6 +466,36 @@ class Game extends React.Component {
       selected: 'Source',
     });
   } 
+
+  resetWeight = () => {
+    var temp_weight = this.state.nodeWeight; 
+    for(var i=0; i<this.state.rows; i++) {
+      for(var j=0; j<this.state.cols; j++) {
+        if(temp_weight[i][j] > 0) {
+          temp_weight[i][j] = 0; 
+        }
+      }
+    }
+    this.setState({
+      nodeWeight: temp_weight,
+    });
+  }
+
+  randomWeight = () => {
+    var temp_weight = this.state.nodeWeight; 
+    for(var i=0; i<this.state.rows; i++) {
+      for(var j=0; j<this.state.cols; j++) {
+        if(temp_weight[i][j] > 0) continue;
+        while(true) {
+          temp_weight[i][j] = Math.floor(Math.random()*10);
+          if(temp_weight[i][j] != 0) break;
+        }
+      }
+    }
+    this.setState({
+      nodeWeight: temp_weight,
+    });
+  }
 
   clearCell = () => {
     this.setState ({
@@ -462,7 +517,7 @@ class Game extends React.Component {
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {'||'}
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <label htmlFor="vol">Weight(1-9) : </label> 
-        <input type="number" id="num" name="weight" min="1" max="9" defaultValue='' onChange={(e) => {this.onWeightChange(e)}} />
+        <input type="range" id="num" name="weight" min="1" max="9" defaultValue='1' onChange={(e) => {this.onWeightChange(e)}} />
         &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; {'||'}
         &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;
         {'Weight = '} {this.state.weight}
@@ -479,6 +534,12 @@ class Game extends React.Component {
         </Button>
         <Button className="margin-around-5px" variant="contained" color="primary" onClick={this.resetAlien}>
           Reset Aliens!
+        </Button>
+        <Button className="margin-around-5px" variant="contained" color="primary" onClick={this.resetWeight}>
+          Reset Weight!
+        </Button>
+        <Button className="margin-around-5px" variant="contained" color="primary" onClick={this.randomWeight}>
+          Random Weight!
         </Button>
         <br /> 
         <Button className="margin-around-5px" variant="outlined" color="primary" onClick={this.placeEntry}>
