@@ -5,10 +5,13 @@ import './index.css';
 
 import { Button } from 'react-bootstrap';
 import { Alert } from 'react-alert';
+import { FaBeer, FaHeart } from 'react-icons/fa';
 
 function Square(props) {
   var lala = props.type;
-  if(lala === 0 || lala == 0) lala = '';
+  if(lala === 0 || lala == 0) lala = ''; 
+  if(lala == -1) lala = <FaBeer size = "10px" />
+  if(lala == -2) lala = <FaHeart size = '10px' />
   return (
     <button style = {{backgroundColor: props.color}} className="square" onClick = {props.onClick} >
       {lala}
@@ -179,6 +182,68 @@ class Game extends React.Component {
     return;
   }
 
+  cmp = (a, b) => {
+    return a[0] < b[0] || (a[0] == b[0] && a[1] < b[1]);
+  }
+
+  cw = (a, b, c) => {
+    return a[0]*(b[1]-c[1])+b[0]*(c[1]-a[1])+c[0]*(a[1]-b[1]) < 0;
+  }
+
+  ccw = (a, b, c) => {
+    return a[0]*(b[1]-c[1])+b[0]*(c[1]-a[1])+c[0]*(a[1]-b[1]) > 0;
+  }
+
+  onTrapAlien = async() => {
+
+    const sleep = (milliseconds) => {
+      return new Promise(resolve => setTimeout(resolve, milliseconds))
+    }
+
+    var arr = []; var temp_weight = this.state.nodeWeight.slice();
+    for(var i=0; i<this.state.rows;i++) {
+      for(var j=0;j<this.state.cols;j++) {
+        if(this.state.nodeWeight[i][j] < 0) {
+          // document.write("[" + i + " " + j + "] ");
+          arr.push([i, j]);
+          temp_weight[i][j] = -1;
+        }
+      }
+    }
+    this.setState({
+      nodeWeight: temp_weight,
+    });
+    await sleep(500);
+    arr.sort(this.cmp);
+    var p1 = arr[0], p2 = arr[arr.length - 1];
+    var up = [], down = [];
+    up.push(p1);
+    down.push(p1);
+    for (var i = 1; i < arr.length; i++) {
+        if (i == arr.length - 1 || this.cw(p1, arr[i], p2)) {
+            while (up.length >= 2 && !this.cw(up[up.length-2], up[up.length-1], arr[i])) up.pop();
+            up.push(arr[i]);
+        }
+        if (i == arr.length - 1 || this.ccw(p1, arr[i], p2)) {
+            while(down.length >= 2 && !this.ccw(down[down.length-2], down[down.length-1], arr[i])) down.pop();
+            down.push(arr[i]);
+        }
+    }
+    arr = [];
+    for (var i = 0; i < up.length; i++) arr.push(up[i]);
+    for (var i = down.length - 2; i > 0; i--) arr.push(down[i]);
+
+    for(var i=0; i<arr.length;i++) {
+      temp_weight[arr[i][0]][arr[i][1]] = -2; var temp_color = this.state.color;
+      temp_color[arr[i][0]][arr[i][1]] = 'violet';
+      this.setState({
+        nodeWeight: temp_weight,
+        color: temp_color,
+      });
+      await sleep(100);
+    }
+  }
+
   onCellClick(i, j) {
     var temp_color = this.state.color.slice();
     if(this.state.selected === 'Source') {
@@ -199,13 +264,23 @@ class Game extends React.Component {
     }
     else if(this.state.selected === 'Clear') {
       temp_color[i][j] = 'white';
+      var temp_weight = this.state.nodeWeight.slice();
+      temp_weight[i][j] = 0;
       this.setState({
         color: temp_color,
+        nodeWeight: temp_weight,
       });
     }
     else if(this.state.selected === 'Weight') {
       var temp_weight = this.state.nodeWeight.slice();
       temp_weight[i][j] = this.state.weight;
+      this.setState({
+        nodeWeight: temp_weight,
+      });
+    }
+    else if(this.state.selected === 'Alien') {
+      var temp_weight = this.state.nodeWeight.slice();
+      temp_weight[i][j] = -1;
       this.setState({
         nodeWeight: temp_weight,
       });
@@ -245,7 +320,11 @@ class Game extends React.Component {
     for(let i = 0; i < r; i++) {
       var s = []; var s1 = [];
       for(let j = 0; j < c; j++) {
-        s.push('white'); s1.push(0);
+        var lulu = 'white'; var coco = 0;
+        if(i < this.state.color.length && j < this.state.color[0].length) {
+          lulu = this.state.color[i][j]; coco = this.state.nodeWeight[i][j];
+        }
+        s.push(lulu); s1.push(coco);
       }
       temp.push(s); typ.push(s1);
     }
@@ -294,6 +373,12 @@ class Game extends React.Component {
     });
   }
 
+  onPlaceAlien = () => {
+    this.setState({
+      selected: 'Alien',
+    });
+  }
+
   onWeight = () => {
     this.setState({
       selected: "Weight",
@@ -302,13 +387,16 @@ class Game extends React.Component {
 
   reset = () => {
     var temp_color = this.state.color.slice();
+    var temp_weight = this.state.nodeWeight.slice();
     for(var i=0; i<this.state.rows; i++) {
       for(var j=0; j<this.state.cols; j++) {
         temp_color[i][j] = 'white';
+        if(temp_weight[i][j] < 0) temp_weight[i][j] = 0;
       }
     }
     this.setState({
       color: temp_color,
+      nodeWeight: temp_weight,
       source: [-1, -1],
       end: [-1, -1],
       convex: false,
@@ -378,6 +466,9 @@ class Game extends React.Component {
         <Button className="margin-around-5px" variant="contained" color="primary" onClick={this.onWeight}>
           Place Weight
         </Button>
+        <Button className="margin-around-5px" variant="contained" color="primary" onClick={this.onPlaceAlien}>
+          Place Alien
+        </Button>
         <Button className="margin-around-5px" variant="outlined" color="primary" onClick={this.clearCell}>
           Clear Cell
         </Button>
@@ -387,6 +478,9 @@ class Game extends React.Component {
         </Button>
         <Button className="margin-around-5px" variant="contained" color="primary" onClick={this.onClickDjikstra}>
           Start Djikstra
+        </Button>
+        <Button className="margin-around-5px" variant="contained" color="primary" onClick={this.onTrapAlien}>
+          Trap Alien
         </Button>
       </div>
     );
