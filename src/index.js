@@ -248,6 +248,12 @@ class Game extends React.Component {
     var temp_color = this.state.color.slice();
     if(this.state.selected === 'Source') {
       if(this.state.source[0] != -1 && this.state.convex === false) temp_color[this.state.source[0]][this.state.source[1]] = 'white';
+      if(i === this.state.end[0] && j === this.state.end[1]) {
+        var lulu = [-1, -1];
+        this.setState({
+          end: lulu,
+        });
+      }
       temp_color[i][j] = 'green';
       this.setState({
         color: temp_color,
@@ -256,6 +262,12 @@ class Game extends React.Component {
     }
     else if(this.state.selected === 'Exit') {
       if(this.state.end[0] != -1 && this.state.convex === false) temp_color[this.state.end[0]][this.state.end[1]] = 'white';
+      if(i === this.state.source[0] && j === this.state.source[1]) {
+        var lulu = [-1, -1];
+        this.setState({
+          source: lulu,
+        });
+      }
       temp_color[i][j] = 'red';
       this.setState({
         color: temp_color,
