@@ -1,63 +1,82 @@
-/* body {
-  font: 14px "Century Gothic", Futura, sans-serif;
-  margin: 20px;
-} */
-
-/* ol, ul {
-  padding-left: 30px;
-} */
-
-
-
-.board-row:after {
+.board-row {
   clear: both;
   content: "";
-  display: table;
+  /* display: table; */
+  /* padding: 0px; */
 }
 
-/* .status {
-  margin-bottom: 10px;
-} */
-
-.table {
-  align-items: center;
+/* .table {
+  margin-left: auto;
+  margin-right: auto;
   text-align: center;
   display: inline block;
-}
+} */
 
 .square {
   background: #fff;
-  border: 1px solid #999;
-  float: left;
-  font-size: 14px;
+  border: 1px solid #008CBA;
+  font-size: 15px; 
   font-weight: bold;
-  line-height: 14px;
+  line-height: 10px;
   height: 20px;
-  margin-right: -1px;
-  margin-top: -1px;
-  padding: 0px;
   text-align: center;
+  padding: 0%;
   width: 20px;
+}
+
+.square:hover {
+  cursor: pointer;
 }
 
 .margin-around-5px{
   margin: 5px 5px !important;
+  background-color: white; /* Green */
+  border: none;
+  color: white;
+  padding: 5px 5px;
+  text-align: center;
+  color: black;
+  font-weight: bold;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 2px solid rgb(10, 10, 10);
+  transition-duration: 0.4s;
 }
 
-/* .square:focus {
-  outline: none;
-} */
+.margin-around-5px:hover {
+  background-color: #008CBA; /* Green */
+  color: white;
+  cursor: pointer;
+}
 
-/* .kbd-navigation .square:focus {
-  background: #ddd;
-} */
+.pura {
+  text-align: center;
+}
 
 .game {
   display: flex;
   flex-direction: row;
-  /* justify-content: center; */
+  justify-content: center;
 }
 
-/* .game-info {
-  margin-left: 20px;
-} */
+.upper {
+  font-weight: bold;
+  border: 2px solid black;
+  margin-bottom: 5px;
+  margin-left: 140px;
+  margin-right: 140px;
+  border-radius: 6px;
+  padding-bottom: 5px;
+  padding-top: 5px;
+}
+
+.upper:hover {
+  background-color: #008CBA;
+  color: white;
+}
+
+.slider:hover {
+  cursor : pointer;
+}

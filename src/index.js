@@ -4,14 +4,13 @@ import TinyQueue from 'tinyqueue';
 import './index.css';
 
 import { Button } from 'react-bootstrap';
-import { Alert } from 'react-alert';
 import { FaBeer, FaHeart } from 'react-icons/fa';
 
 function Square(props) {
   var lala = props.type;
-  if(lala === 0 || lala == 0) lala = ''; 
-  if(lala == -1) lala = <FaBeer size = "10px" />
-  if(lala == -2) lala = <FaHeart size = '10px' />
+  if(lala === 0 || lala === 0) lala = ''; 
+  if(lala === -1) lala = <FaBeer size = "10px" />
+  if(lala === -2) lala = <FaHeart size = '10px' />
   return (
     <button style = {{backgroundColor: props.color}} className="square" onClick = {props.onClick} >
       {lala}
@@ -43,10 +42,11 @@ class Game extends React.Component {
     end: [-1, -1],
     convex: false,
     weight: 1,
+    stop: false,
   };
 
   onClickBFS = async() => {
-    if(this.state.source[0] == -1 || this.state.end[0] == -1) {
+    if(this.state.source[0] === -1 || this.state.end[0] === -1) {
       alert('Source/End not defined!'); 
       return;
     }
@@ -128,7 +128,7 @@ class Game extends React.Component {
       return new Promise(resolve => setTimeout(resolve, milliseconds))
     }
 
-    if(this.state.source[0] == -1 || this.state.end[0] == -1) {
+    if(this.state.source[0] === -1 || this.state.end[0] === -1) {
       alert('Source/End not defined!'); 
       return;
     }
@@ -159,7 +159,7 @@ class Game extends React.Component {
             que.push([parseInt(this.state.nodeWeight[x][y]), x, y]);
             var temp_color = this.state.color;
             if(!(x === st[0] && y === st[1]) && !(x === end[0] && y === end[1])) {
-              if(temp_color[x][y] == 'Aqua') temp_color[x][y] = 'yellow';
+              if(temp_color[x][y] === 'Aqua') temp_color[x][y] = 'yellow';
               else temp_color[x][y] = 'Aqua';
             }
             this.setState({
@@ -196,7 +196,7 @@ class Game extends React.Component {
   }
 
   cmp = (a, b) => {
-    return a[0] < b[0] || (a[0] == b[0] && a[1] < b[1]);
+    return a[0] < b[0] || (a[0] === b[0] && a[1] < b[1]);
   }
 
   cw = (a, b, c) => {
@@ -224,7 +224,7 @@ class Game extends React.Component {
       }
     }
 
-    if(arr.length == 0) {
+    if(arr.length === 0) {
       alert('Aliens not defined!'); 
       return;
     }
@@ -239,11 +239,11 @@ class Game extends React.Component {
     up.push(p1);
     down.push(p1);
     for (var i = 1; i < arr.length; i++) {
-        if (i == arr.length - 1 || this.cw(p1, arr[i], p2)) {
+        if (i === arr.length - 1 || this.cw(p1, arr[i], p2)) {
             while (up.length >= 2 && !this.cw(up[up.length-2], up[up.length-1], arr[i])) up.pop();
             up.push(arr[i]);
         }
-        if (i == arr.length - 1 || this.ccw(p1, arr[i], p2)) {
+        if (i === arr.length - 1 || this.ccw(p1, arr[i], p2)) {
             while(down.length >= 2 && !this.ccw(down[down.length-2], down[down.length-1], arr[i])) down.pop();
             down.push(arr[i]);
         }
@@ -263,6 +263,14 @@ class Game extends React.Component {
     }
   }
 
+  // onStartAstar = async() => {
+  //   if(this.state.source[0] === -1 || this.state.end[0] === -1) {
+  //     alert('Source/End not defined!'); 
+  //     return;
+  //   }
+  //   var r = this.state.rows; var c = this.state.cols;
+  // }
+ 
   onCellClick(i, j) {
     var temp_color = this.state.color.slice();
     if(this.state.selected === 'Source') {
@@ -340,7 +348,7 @@ class Game extends React.Component {
         );
       }
       temp.push(
-        <div className = 'row_render'><div className = 'board-row'>{s}</div></div>
+        <div className = 'singleRow'><div className = 'board-row'>{s}</div></div>
       );
     }
     return temp;
@@ -506,26 +514,36 @@ class Game extends React.Component {
   render() {
     return (
       <div className='pura'>
-        <label htmlFor="vol">Rows (between 6 and 34):</label>
-        <input type="range" id="rows" name="vol" min="6" max="34" defaultValue="6" onChange={(e) => {this.onRowRangeChange(e)}} />
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {this.state.rows}
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {'||'}
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {this.state.cols}
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-        <label htmlFor="vol">Columns (between 6 and 76):</label>
-        <input type="range" id="cols" name="vol" min="6" max="76" defaultValue="6" onChange={(e) => {this.onColRangeChange(e)}} />
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {'||'}
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <label htmlFor="vol">Weight(1-9) : </label> 
-        <input type="range" id="num" name="weight" min="1" max="9" defaultValue='1' onChange={(e) => {this.onWeightChange(e)}} />
-        &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; {'||'}
-        &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;
-        {'Weight = '} {this.state.weight}
-        <br /><br/>
-        <div className='table'>
-        {this.generateGrid()}
+        <div class = 'upper'>
+          <label htmlFor="vol">Rows (between 6 and 24):</label>
+          &nbsp;&nbsp;
+          <input 
+            type="range" 
+            id="rows" 
+            name="vol" 
+            min="6" 
+            max="24" 
+            class = "slider" 
+            defaultValue="6" 
+            onChange={(e) => {this.onRowRangeChange(e)}} 
+          />
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {this.state.rows}
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {'||'}
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          <label htmlFor="vol">Columns (between 6 and 72):</label>
+          &nbsp;&nbsp;
+          <input type="range" id="cols" name="vol" min="6" max="72" class = 'slider' defaultValue="6" onChange={(e) => {this.onColRangeChange(e)}} />
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {this.state.cols}
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {'||'}
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          <label htmlFor="vol">Weight(1-9) : </label> 
+          &nbsp;&nbsp;
+          <input type="range" id="num" name="weight" min="1" max="9" class = 'slider' defaultValue='1' onChange={(e) => {this.onWeightChange(e)}} />
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          {this.state.weight}
         </div>
-        <br />
+        {this.generateGrid()}
         <Button className="margin-around-5px" variant="outlined" color="primary" onClick={this.reset}>
           Reset
         </Button>
