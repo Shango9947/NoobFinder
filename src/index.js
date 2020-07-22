@@ -263,13 +263,14 @@ class Game extends React.Component {
     }
   }
 
-  // onStartAstar = async() => {
-  //   if(this.state.source[0] === -1 || this.state.end[0] === -1) {
-  //     alert('Source/End not defined!'); 
-  //     return;
-  //   }
-  //   var r = this.state.rows; var c = this.state.cols;
-  // }
+  onStartAstar = async() => {
+    if(this.state.source[0] === -1 || this.state.end[0] === -1) {
+      alert('Source/End not defined!'); 
+      return;
+    }
+    var r = this.state.rows; var c = this.state.cols;
+    var gridF, grifH, gridG, gridParent;
+  }
  
   onCellClick(i, j) {
     var temp_color = this.state.color.slice();
