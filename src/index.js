@@ -138,42 +138,53 @@ class Game extends React.Component {
     // document.write(r + " " + c);
     var vis = [];
     for(var i=0;i<r;i++) {
-        dp.push(Array(c).fill(1000000));
-        vis.push(Array(c).fill(false));
+      var dp1 = []; var vis1 = [];
+      for(var j=0; j<c;j++) {
+        dp1.push(1000000);
+        vis1.push(false);
+      }
+      dp.push(dp1); vis.push(vis1);
     }
-    // document.write(r + " " + c);
     var que = []; 
     var st = this.state.source; dp[st[0]][st[1]] = 0;
     var end = this.state.end; 
-    var que = new TinyQueue([], this.cmp); 
+    var que = [];
     que.push([0, st[0], st[1]]); var x1 = [1, -1, 0, 0]; var y1 = [0, 0, 1, -1]; vis[st[0]][st[1]] = true;
+    dp[st[0]][st[1]] = 0;
     while(que.length) {
-      var top = que.pop();
+      var lind = 0; 
+      for(var i=0;i<que.length;i++) {
+        if(que[i][0] < que[lind][0]) lind = i;
+      } 
+      var top = que[lind]; que.splice(lind, 1);
+      if(top[1] === end[0] && top[2] === end[1]) break;
+      // document.write("top " + top[0] + " " + top[1] + " " + top[2] + " " + "<br/>");
+      var temp_color = this.state.color;
+      if(!(top[1] === st[0] && top[2] === st[1]) && !(top[1] === end[0] && top[2] === end[1])) {
+        if(temp_color[top[1]][top[2]] === 'Aqua') temp_color[top[1]][top[2]] = 'yellow';
+        else temp_color[top[1]][top[2]] = 'Aqua';
+      }
+      this.setState({
+        color: temp_color,
+      });
+      await sleep(1);
       for(var i=0;i<4;i++) {
         var x = top[1] + x1[i]; var y = top[2] + y1[i];
         if(x >= 0 && x < r && y >= 0 && y < c && this.state.color[x][y] !== 'gray') {
-          if((dp[x][y] > dp[top[1]][top[2]] + parseInt(this.state.nodeWeight[x][y])) || (!vis[x][y])) {
-            // document.write("[" + x + " " + y + "]"); 
-            vis[x][y] = true;
+          if((dp[x][y] > dp[top[1]][top[2]] + parseInt(this.state.nodeWeight[x][y])) || dp[x][y] === null) {
             dp[x][y] = dp[top[1]][top[2]] + parseInt(this.state.nodeWeight[x][y]);
-            que.push([parseInt(this.state.nodeWeight[x][y]), x, y]);
-            var temp_color = this.state.color;
-            if(!(x === st[0] && y === st[1]) && !(x === end[0] && y === end[1])) {
-              if(temp_color[x][y] === 'Aqua') temp_color[x][y] = 'yellow';
-              else temp_color[x][y] = 'Aqua';
-            }
-            this.setState({
-              color: temp_color,
-            });
-            await sleep(1);
+            que.push([dp[x][y], x, y]);
           }
         } 
       }
     } 
     var last = dp[end[0]][end[1]]; var fin = end;
     if(last === 1000000) {
-      alert('No path exists!'); return; 
+      alert('No path exists'); return; 
     } 
+    if(last === 0) {
+      alert('No weight path possible, try BFS'); return;
+    }
     var temp_color = this.state.color;
     while(true) {
       for(var i=0;i<4;i++) {
