@@ -263,14 +263,46 @@ class Game extends React.Component {
     }
   }
 
-  onStartAstar = async() => {
-    if(this.state.source[0] === -1 || this.state.end[0] === -1) {
-      alert('Source/End not defined!'); 
-      return;
-    }
-    var r = this.state.rows; var c = this.state.cols;
-    var gridF, grifH, gridG, gridParent;
-  }
+  // onStartAstar = async() => {
+  //   if(this.state.source[0] === -1 || this.state.end[0] === -1) {
+  //     alert('Source/End not defined!'); 
+  //     return;
+  //   }
+  //   var r = this.state.rows; var c = this.state.cols;
+  //   var gridF, gridH, gridG, gridParent, vis;
+  //   for(var i=0; i<r;i++) {
+  //     gridF.push(Array(c).fill(0)); gridH.push(Array(c).fill(0));
+  //     gridG.push(Array(c).fill(0)); gridParent.push(Array(c).fill(null)); vis.push(Array(c).fill(false));
+  //   }
+  //   var st = this.state.source; var end = this.state.end;
+  //   var openList = []; var closedList = [];
+  //   openList.push(st);
+  //   while(openList.length !== 0) {
+  //     var lind = 0;
+  //     for(var i=0; i<openList.length; i++) {
+  //       if(gridF[openList[i][0]][openList[i][1]] < gridF[openList[lind][0]][openList[lind][1]]) { lind = i; }
+  //     }
+  //     var currentNode = openList[lind];
+
+  //     if(currentNode[0] === end[0] && currentNode[1] === end[1]) {
+  //       var curr = currentNode;
+  //       var ret = [];
+  //       while(curr.parent) {
+  //         ret.push(curr);
+  //         curr = curr.parent;
+  //       }
+  //       ret.reverse(); break;
+  //     }
+
+  //     openList.splice(lind, 1);
+  //     closedList.push(currentNode);
+
+  //     var xdif = [1, -1, 0, 0]; var ydif = [0, 0, 1, -1];
+  //     for(var i=0;i<4;i++) {
+
+  //     }
+  //   }
+  // }
  
   onCellClick(i, j) {
     var temp_color = this.state.color.slice();
