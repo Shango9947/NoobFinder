@@ -184,20 +184,21 @@ class Game extends React.Component {
     if(last === 1000000) {
       alert('No path exists'); return; 
     } 
-    if(last === 0) {
-      alert('No weight path possible, any path among Pink Node is possible'); 
-      var temp_color = this.state.color;
-      for(var i=0;i<r;i++) {
-        for(var j=0;j<c;j++) {
-          if(dp[i][j] === 0 && !(i === this.state.source[0] && j === this.state.source[1]) && !(i === this.state.end[0] && j === this.state.end[1])) {
-            temp_color[i][j] = 'DeepPink';
-          } 
-        }
+    var count = 0;
+    var lala_color = this.state.color;
+    for(var i=0;i<r;i++) {
+      for(var j=0;j<c;j++) {
+        if(dp[i][j] === 0 && !(i === this.state.source[0] && j === this.state.source[1]) && !(i === this.state.end[0] && j === this.state.end[1])) {
+          lala_color[i][j] = 'DeepPink'; count++;
+        } 
       }
+    }
+    if(count !== 0) {
+      alert('Some zero path-weight nodes found, changing to pink!'); 
       this.setState({
-        color: temp_color,
-      })
-      return;
+        color: lala_color,
+      });
+      await sleep(1000);
     }
     var temp_color = this.state.color;
     while(true) {
@@ -205,9 +206,11 @@ class Game extends React.Component {
         var x = fin[0] - x1[i]; var y = fin[1] - y1[i];
         if(x === this.state.source[0] && y === this.state.source[1]) return;
         if(x >= 0 && x < r && y >= 0 && y < c && (dp[x][y] === dp[fin[0]][fin[1]] - parseInt(this.state.nodeWeight[fin[0]][fin[1]])) && temp_color[x][y] !== 'DeepPink' && temp_color[x][y] !== 'green' && temp_color[x][y] !== 'red' && temp_color[x][y] !== 'gray') {
-            fin = [x, y]; temp_color[x][y] = 'DeepPink'; break;
+            fin = [x, y]; temp_color[x][y] = 'DeepPink'; 
+            break;
         } 
       }
+      if(dp[fin[0]][fin[1]] === 0) break;
       if(fin[0] === this.state.source[0] && fin[1] === this.state.source[1]) break;
       this.setState({
         color: temp_color,
