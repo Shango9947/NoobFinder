@@ -210,12 +210,12 @@ class Game extends React.Component {
             break;
         } 
       }
-      if(dp[fin[0]][fin[1]] === 0) break;
       if(fin[0] === this.state.source[0] && fin[1] === this.state.source[1]) break;
       this.setState({
         color: temp_color,
       })
       await sleep(30);
+      if(dp[fin[0]][fin[1]] === 0) break;
     }
     this.setState({
       color: temp_color,
