@@ -4,6 +4,7 @@ import TinyQueue from 'tinyqueue';
 import './index.css';
 
 import { Button } from 'react-bootstrap';
+import { Helmet } from 'react-helmet'
 import { FaBeer, FaHeart } from 'react-icons/fa';
 
 function Square(props) {
@@ -46,6 +47,7 @@ class Game extends React.Component {
   };
 
   onClickBFS = async() => {
+    this.resetPath(); this.resetWeight(); this.resetAlien();
     if(this.state.source[0] === -1 || this.state.end[0] === -1) {
       alert('Source/End not defined!'); 
       return;
@@ -123,7 +125,7 @@ class Game extends React.Component {
   }
 
   onClickDjikstra = async() => {
-
+    this.resetPath(); this.resetAlien();
     const sleep = (milliseconds) => {
       return new Promise(resolve => setTimeout(resolve, milliseconds))
     }
@@ -183,7 +185,19 @@ class Game extends React.Component {
       alert('No path exists'); return; 
     } 
     if(last === 0) {
-      alert('No weight path possible, try BFS'); return;
+      alert('No weight path possible, any path among Pink Node is possible'); 
+      var temp_color = this.state.color;
+      for(var i=0;i<r;i++) {
+        for(var j=0;j<c;j++) {
+          if(dp[i][j] === 0 && !(i === this.state.source[0] && j === this.state.source[1]) && !(i === this.state.end[0] && j === this.state.end[1])) {
+            temp_color[i][j] = 'DeepPink';
+          } 
+        }
+      }
+      this.setState({
+        color: temp_color,
+      })
+      return;
     }
     var temp_color = this.state.color;
     while(true) {
@@ -219,7 +233,25 @@ class Game extends React.Component {
   }
 
   onTrapAlien = async() => {
-
+    this.resetPath();
+    var ini_color = this.state.color; var ini_weight = this.state.nodeWeight;
+    for(var i=0; i<this.state.rows;i++) {
+      for(var j=0;j<this.state.cols;j++) {
+        if(this.state.nodeWeight[i][j] < 0) {
+          ini_color[i][j] = 'white';
+          continue;
+        } else {
+          ini_color[i][j] = 'white';
+          ini_weight[i][j] = 0;
+        }
+      }
+    }
+    this.setState({
+      source: [-1, -1],
+      end: [-1, -1],
+      color: ini_color,
+      nodeWeight: ini_weight,
+    });
     const sleep = (milliseconds) => {
       return new Promise(resolve => setTimeout(resolve, milliseconds))
     }
@@ -265,7 +297,7 @@ class Game extends React.Component {
 
     for(var i=0; i<arr.length;i++) {
       temp_weight[arr[i][0]][arr[i][1]] = -2; var temp_color = this.state.color;
-      temp_color[arr[i][0]][arr[i][1]] = 'violet';
+      temp_color[arr[i][0]][arr[i][1]] = 'DeepPink';
       this.setState({
         nodeWeight: temp_weight,
         color: temp_color,
@@ -274,51 +306,103 @@ class Game extends React.Component {
     }
   }
 
-  // onStartAstar = async() => {
-  //   if(this.state.source[0] === -1 || this.state.end[0] === -1) {
-  //     alert('Source/End not defined!'); 
-  //     return;
-  //   }
-  //   var r = this.state.rows; var c = this.state.cols;
-  //   var gridF, gridH, gridG, gridParent, vis;
-  //   for(var i=0; i<r;i++) {
-  //     gridF.push(Array(c).fill(0)); gridH.push(Array(c).fill(0));
-  //     gridG.push(Array(c).fill(0)); gridParent.push(Array(c).fill(null)); vis.push(Array(c).fill(false));
-  //   }
-  //   var st = this.state.source; var end = this.state.end;
-  //   var openList = []; var closedList = [];
-  //   openList.push(st);
-  //   while(openList.length !== 0) {
-  //     var lind = 0;
-  //     for(var i=0; i<openList.length; i++) {
-  //       if(gridF[openList[i][0]][openList[i][1]] < gridF[openList[lind][0]][openList[lind][1]]) { lind = i; }
-  //     }
-  //     var currentNode = openList[lind];
+  onStartAstar = async() => {
+    this.resetPath(); this.resetWeight(); this.resetAlien();
+    if(this.state.source[0] === -1 || this.state.end[0] === -1) {
+      alert('Source/End not defined!'); 
+      return;
+    }
+    const sleep = (milliseconds) => {
+      return new Promise(resolve => setTimeout(resolve, milliseconds))
+    }
+    var r = this.state.rows; var c = this.state.cols;
+    var gridF = [], gridH = [], gridG = [], gridParent = [], vis = [], close = [], open = [];
+    for(var i=0; i<r;i++) {
+      var gridF1 = [], gridH1 = [], gridG1 = [], gridParent1 = [], vis1 = [], close1 = [], open1 = [];
+      for(var j=0;j<c;j++) {
+        gridF1.push(0); gridH1.push(0);
+        gridG1.push(0); gridParent1.push(null); vis1.push(false);
+        close1.push(false); open1.push(false);
+      }
+      gridF.push(gridF1); gridH.push(gridH1);
+      gridG.push(gridG1); gridParent.push(gridParent1); vis.push(vis1);
+      close.push(close1); open.push(open1);
+    }
+    var st = this.state.source; var end = this.state.end;
+    var openList = []; 
+    openList.push(st); open[st[0]][st[1]] = true; var ret = []; var temp_color = this.state.color;
+    while(openList.length !== 0) {
+      var lind = 0;
+      for(var i=0; i<openList.length; i++) {
+        if(gridF[openList[i][0]][openList[i][1]] < gridF[openList[lind][0]][openList[lind][1]]) { lind = i; }
+      }
+      var currentNode = openList[lind];
 
-  //     if(currentNode[0] === end[0] && currentNode[1] === end[1]) {
-  //       var curr = currentNode;
-  //       var ret = [];
-  //       while(curr.parent) {
-  //         ret.push(curr);
-  //         curr = curr.parent;
-  //       }
-  //       ret.reverse(); break;
-  //     }
+      if(currentNode[0] === end[0] && currentNode[1] === end[1]) {
+        var curr = currentNode;
+        while(gridParent[curr[0]][curr[1]] !== null) {
+          ret.push(curr);
+          curr = gridParent[curr[0]][curr[1]];
+        }
+        break;
+      }
 
-  //     openList.splice(lind, 1);
-  //     closedList.push(currentNode);
+      openList.splice(lind, 1);
+      open[currentNode[0]][currentNode[1]] = false;
+      close[currentNode[0]][currentNode[1]] = true;
 
-  //     var xdif = [1, -1, 0, 0]; var ydif = [0, 0, 1, -1];
-  //     for(var i=0;i<4;i++) {
+      var xdif = [1, -1, 0, 0]; var ydif = [0, 0, 1, -1];
+      for(var i=0;i<4;i++) {
+        var x = currentNode[0] + xdif[i]; var y = currentNode[1] + ydif[i];
+        if(x >= r || y >= c || x < 0 || y < 0) continue;
+        if(close[x][y] === true || this.state.color[x][y] === 'gray') continue;
+        var gscore = parseInt(gridG[currentNode[0]][currentNode[1]] + 1);
+        var bestGscore = false;
+        if(open[x][y] === false) {
+          bestGscore = true;
+          gridH[x][y] = parseInt(Math.abs(end[0] - x) + Math.abs(end[1] - y));
+          openList.push([x, y]); open[x][y] = true;
+        }
+        else if(gscore < gridG[x][y]) {
+          bestGscore = true;
+        }
 
-  //     }
-  //   }
-  // }
+        if(bestGscore === true) {
+          gridParent[x][y] = currentNode;
+          gridG[x][y] = gscore;
+          // document.write(gridG[x][y] + " " + gridH[x][y] + " " + gridF[x][y] + " " + x + " " + y + "<br/>");
+          gridF[x][y] = parseInt(parseInt(gridG[x][y]) + parseInt(gridH[x][y]));
+          // document.write(gridG[x][y] + " " + gridH[x][y] + " " + gridF[x][y] + " " + x + " " + y + "<br/>");
+          if(!(x === st[0] && y === st[1]) && !(x === end[0] && y === end[1])) {
+            temp_color[x][y] = 'Aqua';
+            this.setState({
+              color: temp_color,
+            });
+            await sleep(10);
+          }
+        }
+      }
+    }
+    if(ret.length === 0) {
+      alert('No Path Found!'); 
+      return;
+    } 
+    for(var i=ret.length-1; i>=0;i--) {
+      if(!(ret[i][0] === st[0] && ret[i][1] === st[1]) && !(ret[i][0] === end[0] && ret[i][1] === end[1])) {
+        temp_color[ret[i][0]][ret[i][1]] = 'DeepPink';
+      }
+      this.setState({
+        color: temp_color,
+      });
+      await sleep(10);
+    }
+    
+  }
  
   onCellClick(i, j) {
     var temp_color = this.state.color.slice();
     if(this.state.selected === 'Source') {
-      if(this.state.source[0] != -1 && this.state.convex === false) temp_color[this.state.source[0]][this.state.source[1]] = 'white';
+      if(this.state.source[0] != -1 && this.state.convex === false && this.state.source[0] < this.state.rows && this.state.source[1] < this.state.cols) temp_color[this.state.source[0]][this.state.source[1]] = 'white';
       if(i === this.state.end[0] && j === this.state.end[1]) {
         var lulu = [-1, -1];
         this.setState({
@@ -332,7 +416,7 @@ class Game extends React.Component {
       });
     }
     else if(this.state.selected === 'Exit') {
-      if(this.state.end[0] != -1 && this.state.convex === false) temp_color[this.state.end[0]][this.state.end[1]] = 'white';
+      if(this.state.end[0] != -1 && this.state.convex === false && this.state.end[0] < this.state.rows && this.state.end[1] < this.state.cols) temp_color[this.state.end[0]][this.state.end[1]] = 'white';
       if(i === this.state.source[0] && j === this.state.source[1]) {
         var lulu = [-1, -1];
         this.setState({
@@ -558,6 +642,9 @@ class Game extends React.Component {
   render() {
     return (
       <div className='pura'>
+        <Helmet>
+          <title>Noob Finder</title>
+        </Helmet>
         <div class = 'upper'>
           <label htmlFor="vol">Rows (between 6 and 24):</label>
           &nbsp;&nbsp;
@@ -631,6 +718,9 @@ class Game extends React.Component {
         </Button>
         <Button className="margin-around-5px" variant="contained" color="primary" onClick={this.onTrapAlien}>
           Trap Alien
+        </Button>
+        <Button className="margin-around-5px" variant="contained" color="primary" onClick={this.onStartAstar}>
+          Start A*
         </Button>
       </div>
     );
