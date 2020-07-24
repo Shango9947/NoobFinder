@@ -206,7 +206,8 @@ class Game extends React.Component {
         var x = fin[0] - x1[i]; var y = fin[1] - y1[i];
         if(x === this.state.source[0] && y === this.state.source[1]) return;
         if(x >= 0 && x < r && y >= 0 && y < c && (dp[x][y] === dp[fin[0]][fin[1]] - parseInt(this.state.nodeWeight[fin[0]][fin[1]])) && temp_color[x][y] !== 'DeepPink' && temp_color[x][y] !== 'green' && temp_color[x][y] !== 'red' && temp_color[x][y] !== 'gray') {
-            fin = [x, y]; temp_color[x][y] = 'DeepPink'; 
+            fin = [x, y]; 
+            if(dp[x][y] !== 0) temp_color[x][y] = 'DeepPink'; 
             break;
         } 
       }
